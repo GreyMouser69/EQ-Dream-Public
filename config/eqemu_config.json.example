@@ -1,0 +1,34 @@
+{
+  "server": {
+    "database": {
+      "host": "127.0.0.1",
+      "port": "3306",
+      "db": "eqdream",
+      "username": "eqdream",
+      "password": "REPLACE_WITH_A_LONG_RANDOM_PASSWORD"
+    },
+    "qsdatabase": {
+      "host": "127.0.0.1",
+      "port": "3306",
+      "db": "eqdream",
+      "username": "eqdream",
+      "password": "REPLACE_WITH_A_DIFFERENT_LONG_RANDOM_PASSWORD"
+    },
+    "world": {
+      "longname": "My EQ Dream Server",
+      "shortname": "eqdream",
+      "address": "PUBLIC_OR_PRIVATE_SERVER_ADDRESS",
+      "localaddress": "127.0.0.1",
+      "key": "REPLACE_WITH_A_LONG_RANDOM_WORLD_KEY",
+      "loginserver1": {
+        "account": "REPLACE_IF_REQUIRED",
+        "password": "REPLACE_IF_REQUIRED",
+        "host": "127.0.0.1",
+        "port": "5998",
+        "legacy": 0
+      }
+    },
+    "zones": { "defaultstatus": "0", "ports": { "low": "7000", "high": "7400" } },
+    "directories": { "plugins": "quests/plugins/" }
+  }
+}

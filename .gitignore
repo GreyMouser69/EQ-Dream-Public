@@ -1,0 +1,13 @@
+# Never publish local runtime state or secrets
+eqemu_config.json
+login.json
+*.log
+logs/
+crash*/
+*.dmp
+*.key
+*.pem
+*.p12
+*.pfx
+*.sql.gz
+backups/

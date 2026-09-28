@@ -1,0 +1,5 @@
+3,0,TFFFC,eqdream_chase_weapons.eqg,Loading Flame of the First Age Weapons
+3,0,TFFFC,eqdream_dying_sun.eqg,Loading Dawnfang Sun Weapons
+3,0,TFFFC,eqdream_velious_20k.eqg,Loading Velious 20K Test Models
+3,0,TFFFC,eqdream_moonsong_test.eqg,Loading Moonsong Test Weapon
+3,0,TFFFC,eqdream_luclin_weapons_stars_r1.eqg,Loading Luclin Chase Test Models
