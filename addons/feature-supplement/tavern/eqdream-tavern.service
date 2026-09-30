@@ -1,0 +1,15 @@
+[Unit]
+Description=EQ Dream Tavern Duels
+After=network.target
+
+[Service]
+User=eqdream-tavern
+Group=eqdream-tavern
+WorkingDirectory=/opt/eqdream-tavern/service
+ExecStart=/usr/bin/node /opt/eqdream-tavern/service/server.mjs /etc/eqdream-tavern.json
+Restart=on-failure
+UMask=0027
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

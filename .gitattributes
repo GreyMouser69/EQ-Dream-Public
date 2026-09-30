@@ -1,0 +1,3 @@
+# Preserve supplement bytes so SHA256SUMS works on Windows and Linux.
+addons/feature-supplement/** -text
+downloads/*.zip -text

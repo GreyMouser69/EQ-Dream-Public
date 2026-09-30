@@ -1,0 +1,12 @@
+{
+  "forge_xml_parsed": true,
+  "forge_texture_files_present": true,
+  "native_command_present": true,
+  "tavern_helper_compiled": true,
+  "tavern_service_tests_passed": true,
+  "tavern_rewards_tests_passed": true,
+  "sql_content_only": true,
+  "native_full_rebuild_performed": false,
+  "fresh_server_ingame_acceptance": false,
+  "external_include_review": []
+}

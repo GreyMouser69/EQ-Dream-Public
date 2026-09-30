@@ -1,0 +1,2 @@
+OP_NMSSpellShardRequest=0x140f
+OP_NMSSpellShardSync=0x1410

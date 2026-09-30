@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+const source=readFileSync(new URL('../lib/game-service.ts',import.meta.url),'utf8');
+const packSource=readFileSync(new URL('../lib/packs.ts',import.meta.url),'utf8');
+const packJs=ts.transpileModule(packSource,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replace("from './game'",`from '${new URL('../lib/game.ts',import.meta.url).href}'`);
+const packUrl='data:text/javascript;base64,'+Buffer.from(packJs).toString('base64');
+const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replace("from './game'",`from '${new URL('../lib/game.ts',import.meta.url).href}'`);
+const {gameService}=await import('data:text/javascript;base64,'+Buffer.from(js.replace("from './packs'",`from '${packUrl}'`)).toString('base64'));
+const sqlite=new DatabaseSync(':memory:');sqlite.exec(readFileSync(new URL('../drizzle/0000_minor_molecule_man.sql',import.meta.url),'utf8'));
+sqlite.exec(readFileSync(new URL('../drizzle/0001_glamorous_tattoo.sql',import.meta.url),'utf8'));
+let failBatch=false;
+function statement(sql,args=[]){const run=()=>{const r=sqlite.prepare(sql).run(...args);return {success:true,meta:{changes:Number(r.changes)}};};return {bind(...values){return statement(sql,values)},async first(){return sqlite.prepare(sql).get(...args)||null},async all(){return {results:sqlite.prepare(sql).all(...args)}},async run(){return run()},runSync:run};}
+const db={prepare:statement,async batch(items){sqlite.exec('BEGIN');try{const out=items.map((s,i)=>{if(failBatch&&i===1)throw Error('Injected second-statement failure');return s.runSync();});sqlite.exec('COMMIT');return out;}catch(e){sqlite.exec('ROLLBACK');throw e;}}};
+const call=(u,b)=>gameService(db,u,b);
+let a=await call('alice',{type:'load'}),b=await call('bob',{type:'load'});await call('carol',{type:'load'});
+a=await call('alice',{type:'claim_starter',clan:'Warrior'});b=await call('bob',{type:'claim_starter',clan:'Necromancer'});await call('carol',{type:'claim_starter',clan:'Necromancer'});
+assert.equal((await call('alice',{type:'load'})).version,a.version,'Reads must not change the profile version');
+a=await call('alice',{type:'new'});const beforeVersion=a.version;a=await call('alice',{type:'action',version:a.version,action:{type:'pass'}});assert.ok(a.version>beforeVersion);await assert.rejects(()=>call('alice',{type:'action',version:beforeVersion,action:{type:'pass'}}),/changed/);
+// Expansion grants do not clear an existing match or replace a saved deck.
+const stored=JSON.parse(sqlite.prepare('SELECT data FROM profiles WHERE id=?').get('alice').data);stored.catalogVersion=2;sqlite.prepare('UPDATE profiles SET data=? WHERE id=?').run(JSON.stringify(stored),'alice');const upgraded=await call('alice',{type:'load'});assert.deepEqual(upgraded.deck,stored.deck);assert.equal(upgraded.game.round,stored.game.round);assert.equal(upgraded.catalogVersion,4);
+a=await call('alice',{type:'host'});const table=a.match.id;assert.equal(a.match.waiting,true);
+b=await call('bob',{type:'join',code:table});assert.equal(b.match.seat,1);assert.equal(b.match.waiting,false);
+await assert.rejects(()=>call('carol',{type:'join',code:table}),/unavailable/);
+a=await call('alice',{type:'load'});assert.ok(a.match.game.players[1].hand.every(id=>id==='?'));assert.ok(a.match.game.players.every(p=>p.deck.every(id=>id==='?')));assert.ok(b.match.game.players[0].hand.every(id=>id==='?'));
+await assert.rejects(()=>call('carol',{type:'pvp',matchId:table,version:a.match.version,action:{type:'pass'}}),/Join/);
+const mv=a.match.version;a=await call('alice',{type:'pvp',matchId:table,version:mv,action:{type:'pass'}});assert.equal(a.match.version,mv+1);
+await assert.rejects(()=>call('alice',{type:'pvp',matchId:table,version:mv,action:{type:'pass'}}),/changed/);
+b=await call('bob',{type:'load'});assert.equal(b.match.version,mv+1);b=await call('bob',{type:'pvp',matchId:table,version:b.match.version,action:{type:'pass'}});assert.equal(b.match.game.phase,'attackers');
+await call('bob',{type:'leave'});a=await call('alice',{type:'load'});assert.equal(a.match.game.winner,0);await call('alice',{type:'leave'});
+a=await call('alice',{type:'host'});const closed=a.match.id;await call('alice',{type:'leave'});await assert.rejects(()=>call('carol',{type:'join',code:closed}),/unavailable/);
+// Two-person exchange, authority checks, rollback and replay protection.
+a=await call('alice',{type:'offer',offered:'guard',wanted:'bone'});let offer=a.offers.find(o=>o.mine);assert.ok(offer);
+await assert.rejects(()=>call('alice',{type:'accept',id:offer.id}),/unavailable/);await assert.rejects(()=>call('carol',{type:'cancel',id:offer.id}),/not yours/);
+const ca=a.collection,beforeB=(await call('bob',{type:'load'})).collection;
+failBatch=true;await assert.rejects(()=>call('bob',{type:'accept',id:offer.id}),/Injected/);failBatch=false;
+assert.deepEqual((await call('alice',{type:'load'})).collection,ca,'failed transaction must not transfer either card');
+b=await call('bob',{type:'accept',id:offer.id});a=await call('alice',{type:'load'});assert.equal(a.collection.guard,ca.guard-1);assert.equal(a.collection.bone,(ca.bone||0)+1);assert.equal(b.collection.guard,(beforeB.guard||0)+1);assert.equal(b.collection.bone,beforeB.bone-1);
+await assert.rejects(()=>call('bob',{type:'accept',id:offer.id}),/unavailable/);
+a=await call('alice',{type:'offer',offered:'guard',wanted:'bone'});offer=a.offers.find(o=>o.mine);
+const race=await Promise.allSettled([call('bob',{type:'accept',id:offer.id}),call('carol',{type:'accept',id:offer.id})]);assert.equal(race.filter(x=>x.status==='fulfilled').length,1,'only one concurrent accept can succeed');
+assert.equal(sqlite.prepare("SELECT status FROM trades WHERE id=?").get(offer.id).status,'complete');
+await assert.rejects(()=>call('alice',{type:'offer',offered:'plains',wanted:'bone'}),/non-land/);
+const copies=sqlite.prepare('SELECT COUNT(*) AS n FROM inventory').get().n;await call('alice',{type:'load'});assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM inventory').get().n,copies);
+console.log('Integration passed: two accounts, hidden information, priority, stale actions, table closure, upgrade preservation, trade authority, atomic rollback, replay and concurrent acceptance.');sqlite.close();

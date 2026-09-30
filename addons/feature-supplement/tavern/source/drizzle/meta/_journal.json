@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789036871809,
+      "tag": "0000_minor_molecule_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789050133561,
+      "tag": "0001_glamorous_tattoo",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "port": 17867,
+  "state": "/var/lib/eqdream-tavern/data",
+  "tickets": "/var/lib/eqdream-tavern/tickets",
+  "origin": "https://eq.example.org",
+  "secure": true
+}

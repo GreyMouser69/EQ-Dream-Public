@@ -4,6 +4,8 @@ This folder is the clean, public handoff for operating and extending an EQ Dream
 
 ## Start here
 
+**Missing-feature package (September 29):** download the [Spell Shards, Tavern Duels and Mythic stats ZIP](downloads/EQ-Dream-Feature-Supplement-2026-09-29.zip) and follow its [installation guide](addons/feature-supplement/README.md). The initial server checkout alone does not register `/spellshards` or `/tavern`. The supplement includes custom client components, server source updates, clean Mythic item definitions and a separately hosted Tavern service. [Checksums](downloads/EQ-Dream-Feature-Supplement-2026-09-29.zip.sha256) and [verification scope](addons/feature-supplement/VERIFICATION.json) are included. Perform in-game acceptance on your own test installation before rollout.
+
 1. Read [Prerequisites](docs/01-prerequisites.md).
 2. Build `Release-NMS-Server` using [the build guide](docs/02-server-build.md).
 3. Create an empty MariaDB database and load the supplied base database as described in [Database setup](docs/03-database-setup.md).
@@ -16,7 +18,7 @@ This folder is the clean, public handoff for operating and extending an EQ Dream
 
 Included in this repository: server source, clean base database archive, EQ Dream quests, plugins, public SQL migrations, and the public custom server-source files needed by this release.
 
-Not included: EverQuest client executables, stock client assets, account/character/player data, production database dumps, passwords, API tokens, private keys, live hostnames/IPs, or private deployment tooling. The custom chase-loot patch packages, their resource mappings, and clean item/spell SQL snapshots are included under `chase-loot/`; use a lawfully obtained compatible RoF2 client; see [Client setup](docs/05-client-setup.md) and [Chase loot](docs/08-chase-loot.md).
+Not included: EverQuest client executables, stock client assets, account/character/player data, production database dumps, passwords, API tokens, private keys, live hostnames/IPs, or private deployment tooling. Custom client extension source/binaries and the Forge UI are in `addons/feature-supplement/`; custom chase-loot packages and clean snapshots are under `chase-loot/`. Use a lawfully obtained compatible RoF2 client; see [Client setup](docs/05-client-setup.md) and [Chase loot](docs/08-chase-loot.md).
 
 ## Repository layout
 
